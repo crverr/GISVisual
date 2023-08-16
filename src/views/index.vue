@@ -1,10 +1,12 @@
 <template>
   <div class="ksh">
-	<Loading ref="childLoad" v-if="loading" />
+	<!-- 加载 -->
+	<!-- <Loading ref="childLoad" v-if="loading" /> -->
+
     <div class="head_top" style="cursor:pointer;" onclick="location.href='https://paycloud.vip'">
 		<img class="img-responsive" src="@/assets/images/jcdsj_logo.png">
-		
 	</div>
+	
 	<div class="visual">
 		<div class="visual_left">
 			<div class="visual_box">
@@ -12,6 +14,7 @@
 					<span>交通流量</span>
 					<img src="@/assets/images/ksh33.png">
 				</div>
+				
 				<div class="visual_chart" id="main1">
 				</div>
 			</div>
@@ -147,6 +150,7 @@
 					<h2>交通大数据分析平台</h2>
 				</div>
                 <!-- 大地图 -->
+				<MapCenter />
 				<div class="visual_chart" id="main8"></div>
 				<div class="visual_conBot_bot">
 					<div class="visualSssf_left">
@@ -243,18 +247,19 @@
 <script>
 // @ is an alias to /src
 import Loading from '@/components/Loading'
+import MapCenter from '@/views/MapCenter'
 
+import { format } from 'echarts';
 export default {
   name: "index",
-  components: {Loading},
+  components: {Loading, MapCenter},
   data() {
     return {
         loading: true
     }
   },
   mounted() {
-    console.log("index mounted");
-    this.hiddenLoading()
+    // this.hiddenLoading()
   },
   methods: {
     hiddenLoading() {
@@ -269,4 +274,6 @@ export default {
 </script>
 <style lang="less">
 @import "../assets/less/index.less";
+
+
 </style>

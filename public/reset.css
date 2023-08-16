@@ -12,6 +12,6 @@ html, body, form{overflow-y:auto;height:100%;}
 
 @font-face{
 	font-family: yjsz;
-	src:url('../fonts/yjsz.TTF'),
-		url('../fonts/yjsz.eot'); /* IE9+,可以是具体的实际链接 */
+	src:url('../src/assets/fonts/yjsz.TTF'),
+		url('../src/assets/fonts/yjsz.eot'); /* IE9+,可以是具体的实际链接 */
 	}

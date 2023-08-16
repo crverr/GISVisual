@@ -8,6 +8,10 @@ const routes = [
     path: '/',
     name: 'index',
     component: () => import('../views/index.vue')
+  },
+  {
+    path: "/map",
+    component: () => import('../views/map.vue')
   }
 ]
 
