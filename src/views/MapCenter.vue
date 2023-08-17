@@ -4,20 +4,26 @@
     <div class="map" id="map" ref="map"></div>
     <div id="mouse-position"></div>
     <div id="popup" class="ol-popup">
-      <a href="" id="popup-closer" class="ol-popup-closer" @click="closePopup">x</a>
+      <div class="popup-title">数据面板</div>
+      <a href="" id="popup-closer" class="ol-popup-closer">x</a>
       <div id="popup-content" class="popup-content"></div>
-      <div class="ol-popup-title">
-        <span>{{ popupText }}</span>
-      </div>
     </div>
   </div>
 </template>
 
 <script>
 import "ol/ol.css";
-import { Map, View, Overlay } from "ol";
-import TileLayer from "ol/layer/Tile";
-import { Image as ImageLayer } from "ol/layer";
+import "ol-layerswitcher/dist/ol-layerswitcher.css";
+import { Map, View, Overlay, Feature } from "ol";
+import { Style, Stroke, Fill } from "ol/style";
+import { Polygon, MultiPolygon } from "ol/geom";
+import {
+  Image as ImageLayer,
+  Group as LayerGroup,
+  Tile as TileLayer,
+} from "ol/layer";
+import LayerSwitcher from "ol-layerswitcher";
+import { BaseLayerOptions, GroupLayerOptions } from "ol-layerswitcher";
 import { ImageWMS, OSM, XYZ, WMTS, TileWMS } from "ol/source";
 import { fromLonLat, transform } from "ol/proj";
 import {
@@ -35,6 +41,7 @@ import {
   DragPan,
   MouseWheelZoom,
   DragZoom,
+  Select,
 } from "ol/interaction";
 import DragRotateAndZoom from "ol/interaction/DragRotateAndZoom";
 
@@ -45,175 +52,26 @@ import * as olLoadingstrategy from "ol/loadingstrategy";
 import { get as getProjection, Projection, toLonLat } from "ol/proj";
 import { getTopLeft, getWidth } from "ol/extent";
 import TileGridWMTS from "ol/tilegrid/WMTS";
-import { createStringXY } from "ol/coordinate";
 import { toStringHDMS } from "ol/coordinate";
-import axios from 'axios';
+import shJson from "@/static/shanghai.json";
+
 export default {
   name: "MapLayer",
   data() {
     return {
       map: null,
       layer: null,
-      popupText: "",
-      features: [],      //要素信息
+      layers: null,
+      features: [], //要素信息
       overlay: null,
-      container: null
+      container: null,
+      shJsonData: shJson,
     };
   },
   mounted() {
-    this.initMapWMS();
+    this.initMapLayer();
   },
   methods: {
-    //初始化地图
-    initMapLayer() {
-      try {
-        const container = this.$refs.map;
-        const ipgeserver = "https://localhost:8899";
-        const map_config = {
-          //矢量切片服务器地址
-          // vectorTile_url:"http://172.17.11.103:8323/geoserver/gwc/service/wmts",
-          vectorTile_url:
-            ipgeserver +
-            "/geoserver/crj/gwc/service/wmts/1.0.0/VectorTile%3Avtmap@EPSG%3A900913@pbf/{z}/{x}/{-y}.pbf",
-          // 矢量切片服务的图层名称
-          layerName_vt: "crj:grid_pop_hp_sh_2020",
-          //图层地址
-          wms_data_url: ipgeserver + "/geoserver/DP/wms",
-          // 图层名称
-          wms_name: "dpRailway",
-          // 图片图层地址
-          railwaywmsUrl: ipgeserver + "/geoserver/DP/wms",
-          // 图片图层名称
-          railwaywmsLname: "DP:dpRailway",
-          // 矢量图层地址
-          stationwfsUrl:
-            ipgeserver +
-            "/geoserver/DP/ows?service=WFS&version=1.0.0&request=GetFeature&maxFeatures=5000&",
-          // 矢量图层名称
-          stationwfsLname: "DP%3AstationData",
-        };
-        // [113.631419, 34.753439]是地理坐标 郑州为中心
-        const map_center = transform(
-          [121.38464355, 31.155578],
-          "EPSG:4326",
-          "EPSG:3857"
-        );
-        // 创建视图
-        const view = new View({
-          center: map_center,
-          zoom: 8,
-          maxZoom: 15,
-          minZoom: 4,
-        });
-        // 创建瓦片图层
-        const vector_layer = new VectorTileLayer({
-          id: "vector_layer",
-          source: new VectorTileSource({
-            format: new MVT(),
-            url: map_config.vectorTile_url,
-          }),
-          style: createlxmapStyle(view),
-        });
-
-        // 创建地图
-        this.map = new Map({
-          interactions: defaults(/*{doubleClickZoom:false}*/).extend([
-            new DragRotateAndZoom(),
-          ]),
-          target: container,
-          layers: [vector_layer],
-          view: view,
-        });
-        // 添加图片图层
-        const railwayLayer = new ImageLayer({
-          id: "railwayLayer",
-          zIndex: 4,
-          source: new ImageWMS({
-            url: map_config.railwaywmsUrl,
-            params: {
-              LAYERS: map_config.railwaywmsLname,
-            },
-            ratio: 2.0,
-            serverType: "geoserver",
-          }),
-        });
-        this.map.addLayer(railwayLayer);
-        // 创建矢量图层
-        const stationLayer = new VectorLayer({
-          zIndex: 2,
-          maxResolution: 10000,
-          minResolution: 15,
-          source: new VectorSource({
-            format: new GeoJSON(),
-            url: function (extent) {
-              return (
-                map_config.stationwfsUrl +
-                "typeName=" +
-                map_config.stationwfsLname +
-                "&outputFormat=application/json&srsname=EPSG:3857&" +
-                "bbox=" +
-                extent.join(",") +
-                ",EPSG:3857"
-              );
-            },
-            strategy: olLoadingstrategy.bbox,
-          }),
-          style: function (feature, resolution) {
-            return StationStyle(feature, resolution);
-          },
-        });
-
-        // 创建的图层均要添加到map上
-        this.map.addLayer(stationLayer);
-      } catch (e) {
-        console.log(e);
-      }
-    },
-    initMap() {
-      const container = this.$refs.map;
-      let epgs = "EPSG:4326";
-      const projection = getProjection(epgs);
-      const extent = projection.getExtent();
-      const size = getWidth(extent) / 256;
-      const resolutions = new Array(22);
-      const matrixIds = new Array(22);
-      for (let z = 0; z < 22; z++) {
-        resolutions[z] = size / Math.pow(2, z + 1);
-        matrixIds[z] = epgs + ":" + z;
-      }
-      this.map = new Map({
-        target: container,
-        interactions: defaults(/*{doubleClickZoom:false}*/).extend([
-          new DragRotateAndZoom(),
-        ]),
-        view: new View({
-          center: [112, 31],
-          zoom: 6,
-          projection: epgs,
-        }),
-        layers: [
-          // 底图用Open Street Map 地图
-          new TileLayer({
-            source: new OSM(),
-          }),
-          new TileLayer({
-            source: new WMTS({
-              url: "http://localhost:8899/geoserver/gwc/service/wmts",
-              layer: "crj:grid_pop_hp_sh_2020",
-              matrixSet: epgs,
-              format: "image/png",
-              projection: projection,
-              tileGrid: new TileGridWMTS({
-                origin: getTopLeft(extent),
-                resolutions: resolutions,
-                matrixIds: matrixIds,
-              }),
-              style: "default",
-            }),
-          }),
-        ],
-      });
-    },
     initMapWMTS() {
       const container = this.$refs.map;
       let gridsetName = "EPSG:4326";
@@ -328,137 +186,51 @@ export default {
           this.map.getSize()
         );
     },
-    initMap3() {
-      const container = this.$refs.map;
-      var gridsetName = "EPSG:4326";
-      var gridNames = [
-        "EPSG:4326:0",
-        "EPSG:4326:1",
-        "EPSG:4326:2",
-        "EPSG:4326:3",
-        "EPSG:4326:4",
-        "EPSG:4326:5",
-        "EPSG:4326:6",
-        "EPSG:4326:7",
-        "EPSG:4326:8",
-        "EPSG:4326:9",
-        "EPSG:4326:10",
-        "EPSG:4326:11",
-        "EPSG:4326:12",
-        "EPSG:4326:13",
-        "EPSG:4326:14",
-        "EPSG:4326:15",
-        "EPSG:4326:16",
-        "EPSG:4326:17",
-        "EPSG:4326:18",
-        "EPSG:4326:19",
-        "EPSG:4326:20",
-        "EPSG:4326:21",
-      ];
-      var baseUrl = "geoserver/gwc/service/wmts";
-      var style = "";
-      var format = "image/png";
-      var infoFormat = "text/html";
-      var layerName = "crj:grid_pop_hp_sh_2020";
-      var projection = new Projection({
-        code: "EPSG:4326",
-        units: "degrees",
-        axisOrientation: "neu",
-      });
-      var resolutions = [
-        0.703125, 0.3515625, 0.17578125, 0.087890625, 0.0439453125,
-        0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125,
-        0.001373291015625, 6.866455078125e-4, 3.4332275390625e-4,
-        1.71661376953125e-4, 8.58306884765625e-5, 4.291534423828125e-5,
-        2.1457672119140625e-5, 1.0728836059570312e-5, 5.364418029785156e-6,
-        2.682209014892578e-6, 1.341104507446289e-6, 6.705522537231445e-7,
-        3.3527612686157227e-7,
-      ];
-
-      let params = {
-        VERSION: "1.0.0",
-        LAYER: layerName,
-        STYLE: style,
-        TILEMATRIX: gridNames,
-        TILEMATRIXSET: gridsetName,
-        SERVICE: "WMTS",
-        FORMAT: format,
-      };
-      var constructSource = () => {
-        var url = baseUrl + "?";
-        for (var param in params) {
-          url = url + param + "=" + params[param] + "&";
-        }
-        url = url.slice(0, -1);
-
-        var source = new VectorTileSource({
-          url: url,
-          layer: params["LAYER"],
-          format: params["FORMAT"],
-          projection: projection,
-          tileGrid: new TileGridWMTS({
-            tileSize: [256, 256],
-            extent: [-180.0, -90.0, 180.0, 90.0],
-            origin: [-180.0, 90.0],
-            resolutions: resolutions,
-            matrixIds: params["TILEMATRIX"],
-          }),
-          wrapX: true,
-        });
-        return source;
-      };
-
-      var layer = new VectorTileLayer({
-        source: constructSource(),
-      });
-
-      var view = new View({
-        center: [0, 0],
-        zoom: 2,
-        resolutions: resolutions,
-        projection: projection,
-        extent: [-180.0, -90.0, 180.0, 90.0],
-      });
-
-      var map = new Map({
-        layers: [layer],
-        target: container,
-        view: view,
-      });
-      map
-        .getView()
-        .fit(
-          [
-            120.85234069824219, 30.69257926940918, 121.97152709960938,
-            31.870302200317383,
-          ],
-          map.getSize()
-        );
-    },
+    //单个图层初始化模块
     initMapWMS() {
-      //底图
-      let ditu = new TileLayer({
+      let layerNames = [
+        "crj:houseprice_point_sh_2020_2",
+        "crj:grid_hp_test",
+        "",
+      ];
+      // 自定义瓦块样式
+      const style = new Style({
+        fill: new Fill({
+          color: "rgba(255, 0, 0, 0.5)",
+        }),
+        stroke: new Stroke({
+          color: "#ccc",
+          width: 1,
+        }),
+      });
+      //地图底图
+      const ditu = new TileLayer({
         title: "底图",
         source: new XYZ({
-          url: "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          // url: "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
           // url: "https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}",
+          url: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
         }), //这个会出现底图
       });
       const wmsSource = new ImageWMS({
         ratio: 1,
         url: "http://localhost:8899/geoserver/crj/wms",
         params: {
-          LAYERS: "crj:grid_pop_hp_sh_2020",
+          LAYERS: "crj:houseprice_point_sh_2020_2",
           STYLES: "",
           VERSION: "1.1.1",
           FORMAT: "image/png",
         },
       });
+      //图片图层
       let untiled = new ImageLayer({
         source: wmsSource,
+        zIndex: 999,
       });
+
+      //切片图
       let tiled = new TileLayer({
-        visible: false,
+        visible: true,
         source: new TileWMS({
           url: "http://localhost:8899/geoserver/crj/wms",
           params: {
@@ -471,66 +243,35 @@ export default {
           },
         }),
       });
-      this.layer = wmsSource;
+      this.layer = untiled;
       let projection = new Projection({
         code: "EPSG:4326",
         units: "degrees",
         axisOrientation: "neu",
       });
       const view = new View({
+        //投影坐标系
         projection: projection,
         // projection: "EPSG:4326",
-        center: [121, 31.5],
-        zoom: 8,
-      });
-
-      let MousePositionControl = new MousePosition({
-        coordinateFormat: createStringXY(4),
-        projection: "EPSG:4326",
-        className: "custom-mouse-position",
-        target: document.getElementById("mouse-position"),
-        undefinedHTML: "&nbsp;",
+        //中心点
+        center: [121.5, 31.2],
+        //缩放比例
+        zoom: 9,
       });
 
       this.map = new Map({
         interactions: InteractionDefaults().extend([new DragRotateAndZoom()]),
         controls: ControlDefaults({
           zoom: true,
-        }).extend([
-          new Zoom(),
-          new ScaleLine(),
-          new ZoomSlider(),
-          MousePositionControl,
-        ]),
+        }).extend([new Zoom(), new ScaleLine(), new ZoomSlider()]),
         //引入地图
         layers: [ditu, untiled],
         target: "map",
         view: view,
       });
 
-      //弹框Overlay对象
-      this.overlay = new Overlay({
-        element: document.getElementById("popup"),      //绑定的DOM对象
-        autoPan: true,            // 定义弹出窗口在边缘点击时候可能不完整 设置自动平移效果
-        autoPanAnimation: {       //自动平移效果的动画时间 9毫秒
-          duration: 250,        
-        },
-      });
-      //将弹窗添加到map地图中
-      this.map.addOverlay(this.overlay);
-
-
-      let _that = this;
-      //获取弹框的节点DOM
-      const closer = document.getElementById('popup-closer');
-      //弹窗的关闭事件
-      closer.onclick = ()=>{
-        //将overlay对象的setPosition赋值为undefined即可隐藏。
-        _that.overlay.setPosition(undefined)
-        closer.blur()
-        return false
-      }
-      
+      //添加overlayer弹窗
+      this.addOverlay();
 
       //地图鼠标悬停监听
       // this.map.on("pointermove", (e)=>{
@@ -542,52 +283,341 @@ export default {
       // })
       // 地图缩放监听
       this.map.on("moveend", (e) => {
-        console.log("movveend");
+        // console.log("movveend");
       });
 
-      //监听地图单击时间
+      //监听地图单击事件
       this.map.on("singleclick", this.mapClick);
+
+      //绘制上海行政区域边界
+      this.addAreaBoundary();
+    },
+    //创建图像图层模块
+    createImageLayer(title, visible, layerName,style="") {
+      return new ImageLayer({
+        title: title,
+        visible: visible,
+        source: new ImageWMS({
+          ratio: 1,
+          url: "http://localhost:8899/geoserver/crj/wms",
+          params: {
+            LAYERS: layerName,
+            STYLES: "",
+            VERSION: "1.1.1",
+            FORMAT: "image/png",
+          },
+        }),
+        style: style
+        // zIndex: zIndex
+      });
+    },
+    //创建底图模块
+    createditu(title, visible) {
+      let source = null;
+      if (title == "OSM") {
+        source = new OSM();
+      } else if (title == "XYZ") {
+        source = new XYZ({
+          // url: "http://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          url: "https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}",
+        });
+      } else if (title == "darkXYZ") {
+        source = new XYZ({
+          url: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
+        });
+      }
+      return new TileLayer({
+        title: title,
+        type: "base",
+        visible: visible,
+        source: source,
+      });
+    },
+    //多个图层初始化地图模块
+    initMapLayer() {
+
+      // 自定义瓦块样式
+      const style = new Style({
+        fill: new Fill({
+          color: "yellow", //填充颜色
+        }),
+        stroke: new Stroke({
+          width: 5, //边界宽度
+          color: [71, 137, 227, 1], //边界颜色
+        }),
+      })
+
+      const osm = this.createditu("OSM", false);
+      const xyz = this.createditu("XYZ", false);
+      const darkxyz = this.createditu("darkXYZ", true);
+
+      //图层列表
+      const layerNames = [
+        "crj:houseprice_point_sh_2020_2",
+        "crj:grid_pop_hp_sh_2020",
+        "crj:region_city_sh",
+        "crj:region_county_sh",
+        "crj:grid_poi_sh_2020_pop",
+        "crj:grid_poi_sh_2020_catering",
+        "crj:grid_poi_sh_2020_houseprice",
+        "crj:grid_poi_sh_2020_market",
+        "crj:grid_poi_sh_2020_school",
+      ];
+
+      //图层实例
+      const housePirce = this.createImageLayer("房价样本点",true,layerNames[0]);
+      const gridPop = this.createImageLayer("gridPop", false, layerNames[1]);
+      const city = this.createImageLayer("city", false, layerNames[2], style);
+      const country = this.createImageLayer("country", false, layerNames[3]);
+      const poiPop = this.createImageLayer("人口", true, layerNames[4]);
+      const poiCater = this.createImageLayer("餐饮", false, layerNames[5]);
+      const poiHousePirce = this.createImageLayer("房价", false, layerNames[6]);
+      const poiSMarket = this.createImageLayer("购物", false, layerNames[7]);
+      const poiSchool = this.createImageLayer("学校", false, layerNames[8]);
+
+      const layers = [poiPop, poiCater, poiHousePirce, poiSMarket, poiSchool,housePirce, gridPop, city, country]
+
+      const baseMaps = new LayerGroup({
+        title: "Base maps",
+        fold: "open",
+        layers: [osm, xyz, darkxyz],
+      });
+
+      
+
+      this.layers = layers
+
+      const Overlays = new LayerGroup({
+        title: "基础要素",
+        fold: "open",
+        layers: layers,
+      });
+      
+      const Overlays2 = new LayerGroup({
+        title: "聚类分析",
+        fold: "open",
+        combine: true,
+        layers: [],
+      });
+
+      const Overlays3 = new LayerGroup({
+        title: "回归分析",
+        fold: "open",
+        combine: true,
+        layers: [],
+      });
+
+
+      const view = new View({
+        // projection: projection,
+        projection: "EPSG:4326",
+        center: [121.5, 31.2],
+        zoom: 9,
+      });
+
+      this.map = new Map({
+        interactions: InteractionDefaults().extend([new DragRotateAndZoom()]),
+        controls: ControlDefaults({
+          zoom: false,
+        }).extend([]),
+        //引入地图
+        layers: [baseMaps, Overlays,Overlays2,Overlays3],
+        target: this.$refs.map,
+        view: view,
+      });
+
+      const layerswitcher = new LayerSwitcher({
+        activationMode: "click",
+        tipLabel: "Légende",
+        groupSelectStyle: "children",
+        reverse: true,
+      });
+      this.map.addControl(layerswitcher);
+
+      //绘制上海行政区域边界
+      this.addAreaBoundary();
+
+      //添加overlayer弹窗
+      this.addOverlay();
+
+      //监听地图单击事件
+      this.map.on("singleclick", this.mapClick);
+
+      //监听地图拖动事件
+      this.map.on("movestart", (e)=>{
+        //弹窗隐藏
+        this.overlay.setPosition(undefined)
+      })
 
 
     },
     //点击地图提取要素信息并展示
-    mapClick(e) {
+    async mapClick(e) {
       //弹窗的内容节点DOM
-      const content = document.getElementById("popup-content")
+      const content = document.getElementById("popup-content");
+      // 鼠标点击的坐标位置
       const coordinate = e.coordinate;
-      let hdms = toStringHDMS(toLonLat(coordinate))     //转换为经纬度显示
+
+
+      // 将地理坐标格式化为半球、度、分和秒的形式
+      let hdms = toStringHDMS(toLonLat(coordinate));
+
+      //请求查询要素信息
+      await this.getFeatures(e);
+
+      let html = "";
+      if (this.features.length) {
+        let { properties } = this.features[0];
+        const keys = Object.keys(properties);
+        let template = `
+          <p>要素信息：</p>
+          <% for(let i=0; i<data.supplies.length; i++) { %>
+              <p><%= data.supplies[i][0] %> : <code><%= data.supplies[i][1]%></code> </p>
+          <% } %>
+        `
+        let parse = eval(this.compile(template))
+        html = parse({supplies: Object.entries(properties)})
+        
+      }
+
       content.innerHTML = `
       <p>经纬度: <code>"+ ${hdms} + "</code></p>
-      <p>坐标: X:${(parseInt(coordinate[0]*100)/100).toFixed(2)} &nbsp;&nbsp; Y: ${(parseInt(coordinate[1]*100)/100).toFixed(2)}</p>
-      <p>要素信息：
-        <span></span>
-      </p>
+      <p>坐标: X:${(parseInt(coordinate[0] * 100) / 100).toFixed(
+        2
+      )} &nbsp;&nbsp; Y: ${(parseInt(coordinate[1] * 100) / 100).toFixed(2)}</p>
+      ${html}
       `;
-      this.overlay.setPosition(coordinate);     //把 overlay 显示到指定的 x,y坐标
+      //把 overlay 显示到指定的 x,y坐标
+      this.overlay.setPosition(coordinate);   
+    },
+    //添加弹窗
+    addOverlay() {
+      //获取弹框的节点DOM
+      const container = document.getElementById("popup");
+      const closer = document.getElementById("popup-closer");
 
+      //弹框Overlay对象
+      this.overlay = new Overlay({
+        element: container, //绑定的DOM对象
+        autoPan: true, // 定义弹出窗口在边缘点击时候可能不完整 设置自动平移效果
+        autoPanAnimation: {
+          //自动平移效果的动画时间 9毫秒
+          duration: 250,
+        },
+      });
+      //将弹窗添加到map地图中
+      this.map.addOverlay(this.overlay);
+      let _that = this;
+      //弹窗的关闭事件
+      closer.onclick = () => {
+        //将overlay对象的setPosition赋值为undefined即可隐藏。
+        _that.overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+      };
 
+      this.overlay.on("mousedown", (e)=>{
+        console.log(e);
+      })
+
+    },
+    //请求要素信息
+    getFeatures(e) {
       const viewResolution = this.map.getView().getResolution();
-      const url = this.layer.getFeatureInfoUrl(
-        e.coordinate,
-        viewResolution,
-        "EPSG:4326",
-        { INFO_FORMAT: "application/json" }
-      );
+      let url = ""
+
+      //多个图层：遍历每个图层，仅在可见的情况下才查询要素信息
+      this.layers.forEach((layer) => {
+        if(layer.getVisible()) {
+          url = layer.getSource().getFeatureInfoUrl(
+            e.coordinate, 
+            viewResolution,
+            "EPSG:4326",
+            { INFO_FORMAT: "application/json" })
+        }
+      })
+
+      //单个图层
+      // url = this.layer.getSource.getFeatureInfoUrl(
+      //   e.coordinate,
+      //   viewResolution,
+      //   "EPSG:4326",
+      //   { INFO_FORMAT: "application/json" }
+      // );
+      
+      //请求url
       if (url) {
-        axios.get(url).then((res) => {
-          console.log(res.data.features);
-          if (res.data.features) {
-            this.features = res.data.features;
-            if (this.features.length) {
-              console.log(this.features[0].properties);
-            }
-          }
+        //请求数据
+        return this.axios.get(url).then((res) => {
+          this.features = res.data.features;
         });
       }
     },
-    //弹窗关闭
-    closePopup() {
-      
+    //绘制行政区域边界
+    addAreaBoundary() {
+      let geo = this.shJsonData.features;
+      // let geo = new GeoJSON().readFeatures(this.shJsonData)
+      let features = [];
+
+      geo.forEach((g) => {
+        let lineData = g.geometry;
+        let routeFeature = "";
+        if (lineData.type === "MultiPolygon") {
+          routeFeature = new Feature({
+            geometry: new MultiPolygon(lineData.coordinates),
+          });
+        } else if (lineData.type === "Polygon") {
+          routeFeature = new Feature({
+            geometry: new Polygon(lineData.coordinates),
+          });
+        }
+        routeFeature.setStyle(
+          new Style({
+            fill: new Fill({
+              color: "#4e98f444", //填充颜色
+            }),
+            stroke: new Stroke({
+              width: 2, //边界宽度
+              color: [71, 137, 227, 1], //边界颜色
+            }),
+          })
+        );
+        features.push(routeFeature);
+      });
+      // 设置图层
+      this.routeLayer = new VectorLayer({
+        source: new VectorSource({
+          features: features,
+        }),
+      });
+      // 添加图层
+      this.map.addLayer(this.routeLayer);
+    },
+    //模板编译
+    compile(template) {
+      const evalExpr = /<%=(.+?)%>/g;
+      const expr = /<%([\s\S]+?)%>/g;
+
+      template = template
+        .replace(evalExpr, '`); \n  echo( $1 ); \n  echo(`')
+        .replace(expr, '`); \n $1 \n  echo(`');
+
+      template = 'echo(`' + template + '`);';
+
+      let script =
+      `(function parse(data){
+        let output = "";
+
+        function echo(html){
+          output += html;
+        }
+
+        ${ template }
+
+        return output;
+      })`;
+
+      return script;
     }
   },
 };
@@ -597,31 +627,72 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
+  // z-index: 1;
+  /deep/.layer-switcher {
+    top: 14.5em;
+    right: 27%;
+  }
   .map {
-    width: 713px;
-    height: 488px;
+    width: 100%;
+    height: 100%;  //780px;
   }
   .ol-popup {
-      position: absolute;
-      background-color: white;
-      -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
-      filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
-      padding: 15px;
-      border-radius: 10px;
-      border: 1px solid #cccccc;
-      bottom: 12px;
-      left: -50px;
-      .popup-content {
-        width: 400px;
-        text-align: left;
-      }
-      .ol-popup-closer {
-          text-decoration: none;
-          position: absolute;
-          top: 2px;
-          right: 8px;
+    position: relative;
+    background-color: rgba(9, 24, 46, .5);
+    -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+    filter: drop-shadow(0 1px 4px #25C1FF);
+    
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 200px;
+    color: #f0fbff;
+    cursor: pointer;
+    overflow: hidden;
 
-      }
+    &::after,&::before{
+      top: 100%;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+    &::after{
+      border-top-color: white;
+      border-width: 10px;
+      left: 48px;
+      margin-left: -10px;
+    }
+    &::before{
+      border-top-color: #ccc;
+      border-width: 11px;
+      left: 48px;
+      margin-left: -11px;
+    }
+    .popup-title {
+      background-color: rgba(9, 24, 46, .5);
+      margin-bottom: 10px;
+      padding: 8px 0;
+      font-size: 16px;
+    }
+    .popup-content {
+      width: 300px;
+      text-align: left;
+      max-height: 300px;
+      overflow: auto;
+      padding: 0 10px 15px;
+    }
+    .ol-popup-closer {
+      text-decoration: none;
+      position: absolute;
+      top: 2px;
+      right: 8px;
+      color: #f0fbff;
+    }
   }
+  
 }
 </style>

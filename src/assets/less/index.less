@@ -1,13 +1,12 @@
 .ksh {
 	height: 1000px;
-	padding: 15px;
-	background: url(~@/assets/images/data08.png) no-repeat #061537;
+	padding-top: 15px;
+	// background: url(~@/assets/images/data08.png) no-repeat #061537;
+	background: linear-gradient(90deg, #061537, #002f47 );
+
 	background-size: cover;
 	overflow: hidden;
 	position: relative;
-	z-index: -2;
-
-	
 
 	.head_top {
 		position: relative;
@@ -33,33 +32,15 @@
 	.visual {
 		height: calc(100% - 33px);
 		padding-top: 10px;
-		.visual_box {
-			height: 33.3%;
-			.visual_title {
-				position: relative;
-				height: 35px;
-				margin: 5px 0;
-				span {
-					color: #fff;
-					font-size: 18px;
-					line-height: 35px;
-				}
-				img {
-					width: 100%;
-					position: absolute;
-					left: 0;
-					bottom: 0;
-				}
-			}
-			.visual_chart {
-				height: calc(100% - 35px);
-			}
-	
-		}
+		position: relative;
 		.visual_left {
 			width: 25%;
 			height: 100%;
-			float: left;
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			z-index: 9;
+			// pointer-events: none;    //避免浮动元素影响地图事件 ——点击穿透
 			.sfzcll {
 				position: relative;
 				a {
@@ -141,8 +122,12 @@
 		.visual_con {
 			width: 50%;
 			height: 100%;
-			float: left;
-			padding: 25px 20px 0 20px;
+			position: absolute;
+			top: 10px;
+			left: 25%;
+			padding: 10px 20px 0 20px;
+			z-index: 9;
+			pointer-events: none;
 			.visual_conTop {
 				height: 130px;
 				margin-bottom: 10px;
@@ -155,6 +140,7 @@
 							color: #fff;
 							font-size: 16px;
 							padding: 16px 0 0 20px;
+							margin: 0;
 						}
 						p {
 							width: 33%;
@@ -203,7 +189,7 @@
 					height: 100%;
 					float: left;
 					&>div {
-						background: url(../images/ksh40.png) no-repeat;
+						background: url(../images/ksh40.png) no-repeat rgba(15, 47, 72, 0.7);
 						background-size: 100% 100%;
 					}
 				}
@@ -212,38 +198,36 @@
 					height: 100%;
 					float: left;
 					&>div {
-						background: url(../images/ksh39.png) no-repeat;
+						background: url(../images/ksh39.png) no-repeat rgba(15, 47, 72, 0.7);
 						background-size: 100% 100%;
 					}
 				}
 			}
 			.visual_conBot {
 				height: calc(100% - 136px);
-				background: url(../images/ksh41.png) no-repeat;
-				background-size: 100% 100%;
 				position: relative;
 				&>img {
 					position: absolute;
 					width: 25px;
 					height: 25px;
 				}
+				.visual_conBot_0 {
+					position: absolute;	
+					z-index: 999;
+				}
 				.visual_conBot_l {
-					position: absolute;
 					left: 0;
 					top: 0;
 				}
 				.visual_conBot_2 {
-					position: absolute;
 					right: 0;
 					top: 0;
 				}
 				.visual_conBot_3 {
-					position: absolute;
 					right: 0;
 					bottom: 0;
 				}
 				.visual_conBot_4 {
-					position: absolute;
 					left: 0;
 					bottom: 0;
 				}
@@ -317,7 +301,11 @@
 		.visual_right {
 			width: 25%;
 			height: 100%;
-			float: right;
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			z-index: 9;
+			// pointer-events: none;   //避免浮动元素影响地图事件 ——点击穿透
 			.visualSfzsfl {
 				position: relative;
 				.visual_chart {
