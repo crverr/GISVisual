@@ -10,7 +10,7 @@
 	<div class="visual">
 		<MapCenter />
 		<div class="visual_left">
-			<VisualBox v-for="(title,index) in titlesL" :key="index" :title="title" />
+			<VisualBox v-for="(item,index) in titlesL" :key="index" :item="item" />
 		</div>
 		<div class="visual_con">
 			<div class="visual_conTop">
@@ -92,7 +92,7 @@
 			</div>
 		</div>
 		<div class="visual_right">
-			<VisualBox v-for="(title,index) in titlesR" :key="index" :title="title" />
+			<VisualBox v-for="(item,index) in titlesR" :key="index" :item="item" />
 		</div>
 		<div class="clear"></div>
 	</div>
@@ -111,8 +111,8 @@ export default {
   data() {
     return {
         loading: true,
-		titlesL: ["各区房价最均价", "各区房价分布", "房价Top"],
-		titlesR: ["空间分布模式", "影响房价的TOP因素", "变量统计分析"],
+		titlesL: [["各区每月房价均价", 1], ["各区房价分布",2], ["房价Top",3]],
+		titlesR: [["空间分布模式",4], ["影响房价的TOP因素",5], ["变量统计分析",6]],
     }
   },
   mounted() {
