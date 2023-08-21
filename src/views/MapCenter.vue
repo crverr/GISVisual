@@ -24,19 +24,17 @@ import {
   Group as LayerGroup,
   Tile as TileLayer,
   Vector as VectorLayer,
+  WebGLPoints as WebGLPointsLayer,
 } from "ol/layer";
 import LayerSwitcher from "ol-layerswitcher";
-import { BaseLayerOptions, GroupLayerOptions } from "ol-layerswitcher";
+import olLayerSwitcher from "ol-ext/control/LayerSwitcher";
 import {
   ImageWMS,
   OSM,
   XYZ,
-  WMTS,
   TileWMS,
   Vector as VectorSource,
 } from "ol/source";
-
-import { fromLonLat, transform } from "ol/proj";
 import {
   defaults as ControlDefaults,
   ZoomSlider,
@@ -54,154 +52,55 @@ import {
   Select,
 } from "ol/interaction";
 import DragRotateAndZoom from "ol/interaction/DragRotateAndZoom";
-
+import { click, pointerMove } from "ol/events/condition";
 import GeoJSON from "ol/format/GeoJSON";
-import * as olLoadingstrategy from "ol/loadingstrategy";
+import { bbox as bboxStrategy } from "ol/loadingstrategy.js";
 import { get as getProjection, Projection, toLonLat } from "ol/proj";
-import { getTopLeft, getWidth } from "ol/extent";
 import TileGridWMTS from "ol/tilegrid/WMTS";
 import { toStringHDMS } from "ol/coordinate";
 import shJson from "@/static/shanghai.json";
-import layerStrJson from '@/static/layerStructure.json'
-import OlExtLegend from "ol-ext/legend/Legend";
-import OlExtLegendControl from "ol-ext/control/Legend";
-import { time } from 'echarts';
+import layerStrJson from "@/static/layerStructure.json";
+import olExtLegend from "ol-ext/legend/Legend";
+import legendImage from "ol-ext/legend/Image";
+import olExtLegendControl from "ol-ext/control/Legend";
 
 export default {
   name: "MapLayer",
   data() {
     return {
       map: null,
-      layer: null,
-      layers: null,
+      legend: null,
+      layers: [],              //图层集合
+      layerList: [],          //图层组集合
       features: [], //要素信息
       overlay: null,
       container: null,
       shJsonData: shJson,
       layerStrData: layerStrJson,
-      wfsUrl: "http://localhost:8899/geoserver/wfs"        //wfs服务地址
+      wfsUrl: "http://localhost:8899/geoserver/wfs", //wfs服务地址
+      color: [
+        "#ff14c3",
+        "#ff621d",
+        "#ffed02",
+        "#00ff67",
+        "#fdae61",
+        "#2b83ba",
+        "#abdda4",
+        "#d7191c",
+        "#ababab",
+        "#00ffff",
+        "#85ff9c",
+      ],
     };
   },
   mounted() {
     // this.initMapWMS();
+    //初始化底图
     this.initMapLayer();
-    // this.addLegend()
+    //初始化图例
+    this.initLegend();   
   },
   methods: {
-    initMapWMTS() {
-      const container = this.$refs.map;
-      let gridsetName = "EPSG:4326";
-      let gridNames = [
-        "EPSG:4326:0",
-        "EPSG:4326:1",
-        "EPSG:4326:2",
-        "EPSG:4326:3",
-        "EPSG:4326:4",
-        "EPSG:4326:5",
-        "EPSG:4326:6",
-        "EPSG:4326:7",
-        "EPSG:4326:8",
-        "EPSG:4326:9",
-        "EPSG:4326:10",
-        "EPSG:4326:11",
-        "EPSG:4326:12",
-        "EPSG:4326:13",
-        "EPSG:4326:14",
-        "EPSG:4326:15",
-        "EPSG:4326:16",
-        "EPSG:4326:17",
-        "EPSG:4326:18",
-        "EPSG:4326:19",
-        "EPSG:4326:20",
-        "EPSG:4326:21",
-      ];
-      let baseUrl = "http://localhost:8899/geoserver/crj/gwc/service/wmts";
-      let style = "";
-      let format = "image/png";
-      // let format = "application/json;type=geojson";
-      let infoFormat = "text/html";
-      let layerName = "crj:grid_pop_hp_sh_2020";
-      let projection = new Projection({
-        code: "EPSG:4326",
-        units: "degrees",
-        axisOrientation: "neu",
-      });
-      let resolutions = [
-        0.703125, 0.3515625, 0.17578125, 0.087890625, 0.0439453125,
-        0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125,
-        0.001373291015625, 6.866455078125e-4, 3.4332275390625e-4,
-        1.71661376953125e-4, 8.58306884765625e-5, 4.291534423828125e-5,
-        2.1457672119140625e-5, 1.0728836059570312e-5, 5.364418029785156e-6,
-        2.682209014892578e-6, 1.341104507446289e-6, 6.705522537231445e-7,
-        3.3527612686157227e-7,
-      ];
-
-      let params = {
-        SERVICE: "WMTS",
-        VERSION: "1.0.0",
-        LAYER: layerName,
-        STYLE: style,
-        TILEMATRIX: gridsetName,
-        TILEMATRIXSET: gridsetName,
-        FORMAT: format,
-      };
-      let constructSource = () => {
-        let url = baseUrl + "?";
-        for (let param in params) {
-          url = url + param + "=" + params[param] + "&";
-        }
-        url = url.slice(0, -1);
-        let source = new WMTS({
-          url: url,
-          layer: params["LAYER"],
-          matrixSet: params["TILEMATRIXSET"],
-          format: params["FORMAT"],
-          projection: projection,
-          tileGrid: new TileGridWMTS({
-            tileSize: [256, 256],
-            extent: [-180.0, -90.0, 180.0, 90.0],
-            origin: [-180.0, 90.0],
-            resolutions: resolutions,
-            matrixIds: params["TILEMATRIX"],
-          }),
-          wrapX: true,
-          style: params["STYLE"],
-        });
-        return source;
-      };
-
-      let layer = new VectorTileLayer({
-        source: constructSource(),
-      });
-
-      let view = new View({
-        center: [0, 0],
-        zoom: 2,
-        resolutions: resolutions,
-        projection: projection,
-        extent: [-180.0, -90.0, 180.0, 90.0],
-      });
-
-      this.map = new Map({
-        controls: ControlDefaults({ attribution: false }).extend([
-          new MousePosition(),
-          new ScaleLine(),
-          new ZoomSlider(),
-        ]),
-        layers: [layer],
-        target: container,
-        view: view,
-      });
-      this.map
-        .getView()
-        .fit(
-          [
-            120.85234069824219, 30.69257926940918, 121.97152709960938,
-            31.870302200317383,
-          ],
-          this.map.getSize()
-        );
-    },
     //单个图层初始化模块
     initMapWMS() {
       let layerNames = [
@@ -297,11 +196,11 @@ export default {
       //绘制上海行政区域边界
       this.addAreaBoundary();
     },
-    //创建图像图层模块
-    createImageLayer(title, visible, layerName, type = "", style = "") {
+    //WMS服务加载图像图层模块
+    createImageLayer(title, visible, layerName, propertyName, type = "", style = "") {
       /*
       params:
-        type:   单选/多选
+        type | baseLayer:   是否独占，单选/多选
         layerName： 图层名
         visible:  是否可见
         title：图层标题
@@ -310,10 +209,11 @@ export default {
       return new ImageLayer({
         title: title,
         visible: visible,
-        type: type,
+        baseLayer: type,
+        propertyName: propertyName,
         source: new ImageWMS({
           ratio: 1,
-          url: "/sb/wms",
+          url: "http://localhost:8899/geoserver/crj/wms",
           params: {
             LAYERS: layerName,
             STYLES: "",
@@ -426,60 +326,69 @@ export default {
         visible:  是否可见
         layerName: 图层名
         propertyName: 图层属性
-
       */
-      // const layerTypeName = "crj:grid_sh_2020"; //图层名
-      // const propertyName = "index,grid_code,pop20";
-      const baseUrl = this.wfsUrl +"?service=wfs&version=1.1.0&request=GetFeature&typeName=" +
+
+      //如有指定单个字段，则添加id和几何geom字段
+      if (propertyName !== "") {
+        var newPropertyName = propertyName + ",geom";
+      }
+
+      //请求url
+      const baseUrl =
+        this.wfsUrl +
+        "?service=wfs&version=1.1.0&request=GetFeature&typeName=" +
         layerName +
-        "&outputFormat=application/json&propertyName=" +
-        propertyName;
-      //创建wfs图层，注意需要设置好描边样式，否则不展示效果出来
-      const vector = new VectorLayer({
-        title: title,
-        visible: visible,
-        type: type,
-        source: new VectorSource({
-          format: new GeoJSON(),
-          projection: "EPSG:4326",
-          url: baseUrl,
-        }),
-        style: this.getFeatureNameColor(),
+        "&outputFormat=application/json" +
+        (propertyName ? "&propertyName=" + newPropertyName : "");
+
+      //加载策略——根据范围和分辨率加载
+      const vectorSourceByBbox = new VectorSource({
+        format: new GeoJSON(),
+        url: (extent, resolution, projection) => {
+          const proj = projection.getCode();
+          const url =
+            baseUrl +
+            "&srsname=" +
+            proj +
+            "&bbox=" +
+            extent.join(",") +
+            "," +
+            proj;
+          return url;
+        },
+        strategy: bboxStrategy,
       });
-      return vector
-    },
-    //WFS Features的样式
-    getFeatureNameColor() {
-      var style_highlighted = new Style({
-        fill: new Fill({
-          color: "red",
-        }),
-        stroke: new Stroke({
-          color: "white",
-          width: 2,
-        }),
-        text: new Text({
-          fill: new Fill({
-            color: "yellow",
-          }),
-          stroke: new Stroke({
-            color: "orange",
-            width: 4,
-          }),
-          scale: 1.2,
-        }),
-        image: new Circle({
-          radius: 5,
-          fill: new Fill({
-            color: "pink",
-            opacity: 0.5,
-          }),
-        }),
+
+      //加载策略——一次性加载所有features
+      const vectorSource = new VectorSource({
+        format: new GeoJSON(),
+        projection: "EPSG:4326",
+        url: baseUrl,
       });
-      return style_highlighted;
+
+      //根据是否有点数范围来选择加载的layer类型
+      if (range.length > 0) {
+        //创建wfs图层
+        return new WebGLPointsLayer({
+          title: title,
+          visible: visible,
+          type: type,
+          source: vectorSource,
+          style: this.hightlightStyle(range, propertyName),
+        });
+      } else {
+        //创建wfs图层
+        return new VectorLayer({
+          title: title,
+          visible: visible,
+          type: type,
+          source: vectorSourceByBbox,
+          style: this.getFeatureNameColor(),
+        });
+      }
     },
-    //方法2：通过axios使用WFS加载矢量图层
-    getFeaturesByAxios() {
+    //WFS服务加载方法2：通过axios使用WFS加载矢量图层
+    createLayerByAxios() {
       const params = {
         service: "wfs",
         version: "1.1.0",
@@ -510,88 +419,180 @@ export default {
           console.log("请求失败，失败信息：" + error);
         });
     },
-    //多图层初始化地图模块
-    initMapLayer() {
-      // 自定义瓦块样式
-      const style = new Style({
+    //WFS Features的样式
+    getFeatureNameColor() {
+      return new Style({
         fill: new Fill({
-          color: "yellow", //填充颜色
+          color: "#4e98f444",
         }),
         stroke: new Stroke({
-          width: 5, //边界宽度
-          color: [71, 137, 227, 1], //边界颜色
+          color: "#b7e5ff",
+          width: 1,
+        }),
+        text: new Text({
+          fill: new Fill({
+            color: "yellow",
+          }),
+          stroke: new Stroke({
+            color: "orange",
+            width: 4,
+          }),
+          scale: 1.2,
+        }),
+        image: new Circle({
+          radius: 3,
+          fill: new Fill({
+            color: "aqua",
+            opacity: 0.5,
+          }),
         }),
       });
+    },
+    //点的高亮样式
+    hightlightStyle(range, propertyName) {
+      let newRange = [];
+      range.forEach((item, index) => {
+        newRange.push(item);
+        newRange.push(this.color[index]);
+      });
+      let color = ["interpolate", ["linear"], ["get", propertyName]].concat(
+        newRange
+      );
+      console.log(color);
+      const style = {
+        symbol: {
+          symbolType: "circle", //图标形状可选值为：circle/triangle/square/image
+          size: [
+            "interpolate",
+            ["linear"],
+            ["get", "population"],
+            range[0],
+            5,
+            range[range.length - 1] + 1,
+            28,
+          ],
+          color: color,
+          // color: [
+          //   'interpolate',
+          //   ['linear'],
+          //   ['get', "unitprice"],
+          //   3,
+          //   '#ff14c3',
+          //   38282 ,
+          //   '#ff621d',
+          //   56568 ,
+          //   '#ffed02',
+          //   77404,
+          //   '#00ff67',
+          //   110702,
+          //   "#fdae61",
+          //   360577,
+          //   "#d7191c"],
+          offset: [0, 0],
+          opacity: 0.95,
+        },
+      };
+      return style;
+    },
+    //整合图层列表
+    getLayerList() {
+      //底图
+      const osm = this.createditu("OSM", false);
+      const xyz = this.createditu("XYZ", false);
+      const darkxyz = this.createditu("darkXYZ", true);
+      //底图组
+      const baseMaps = new LayerGroup({
+        title: "Base maps",
+        fold: "open",
+        layers: [osm, xyz, darkxyz],
+      });
 
+      let layerList = [darkxyz];
+
+      //遍历一级目录
+      this.layerStrData.forEach((fitem, fid) => {
+        //二级目录层
+        let sLayers = [];
+        //遍历二级目录
+        fitem.childs.forEach((sitem, sid) => {
+          //二级目录是否还有子目录
+          if (sitem.hasOwnProperty("childs")) {
+            //三级目录——图层
+            let tLayers = [];
+            //遍历三级目录
+            sitem.childs.forEach((titem, tid) => {
+              //三级目录是否有指定字段
+              let property = titem.hasOwnProperty("property")
+                ? titem.property
+                : "";
+              //图层名
+              let file =
+                "crj:" +
+                (titem.hasOwnProperty("file")
+                  ? titem.file
+                  : sitem.file + "_" + property);
+              let layer = this.createImageLayer(
+                titem.name,
+                sitem.visible,
+                file,
+                property,
+                fitem.type
+              );
+
+              //WFS请求
+              //二级目录是否统一的数据文件
+              // let file = "crj:" + (titem.hasOwnProperty("file") ? titem.file : sitem.file);
+              // let layer = this.createLayerByOl(titem.name, sitem.visible, fitem.type, file, property);
+
+              tLayers.push(layer);
+              this.layers.push(layer);
+            });
+            //二级目录组
+            const sencondGroup = new LayerGroup({
+              title: sitem.name,
+              fold: "close",
+              layers: tLayers,
+            });
+            sLayers.push(sencondGroup);
+          }
+          //二级目录没有子目录
+          else {
+            //二级目录是否有指定字段
+            let property = sitem.hasOwnProperty("property")
+              ? sitem.property
+              : "";
+            //WMS请求
+            let layer = this.createImageLayer(
+              sitem.name,
+              sitem.visible,
+              "crj:" + sitem.file,
+              property,
+              fitem.type
+            );
+
+            // let range = sitem.hasOwnProperty("range") ? sitem.range : []
+            //let layer = this.createLayerByOl(sitem.name, sitem.visible, fitem.type, "crj:" + sitem.file, property, range);
+            sLayers.push(layer);
+            this.layers.push(layer);
+          }
+        });
+
+        const firstGroup = new LayerGroup({
+          title: fitem.name,
+          fold: "close",
+          layers: sLayers,
+        });
+
+        layerList.push(firstGroup);
+      });
+      return layerList;
+    },
+    //多图层初始化地图模块
+    initMapLayer() {
+      //获取图层列表
       let layerList = this.getLayerList();
 
-
-      //基础要素图层列表
-      const baseLayerNames = ["crj:region_city_sh", "crj:region_county_sh"];
-
-      const layerNames = [
-        "crj:houseprice_point_sh_2020",
-        "crj:grid_pop_hp_sh_2020",
-        "crj:grid_poi_sh_2020_pop",
-        "crj:grid_poi_sh_2020_catering",
-        "crj:grid_poi_sh_2020_houseprice",
-        "crj:grid_poi_sh_2020_market",
-        "crj:grid_poi_sh_2020_school",
-      ];
-
-      //图层实例
-      const housePirce = this.createImageLayer(
-        "房价样本点",
-        true,
-        layerNames[0]
-      );
-      const gridPop = this.createImageLayer("gridPop", false, layerNames[1]);
-      const city = this.createImageLayer("city", false, layerNames[2], style);
-      const country = this.createImageLayer("country", false, layerNames[3]);
-      const poiPop = this.createImageLayer("人口", false, layerNames[4]);
-      const poiCater = this.createImageLayer("餐饮", false, layerNames[5]);
-      const poiHousePirce = this.createImageLayer("房价", false, layerNames[6]);
-      const poiSMarket = this.createImageLayer("购物", false, layerNames[7]);
-      const poiSchool = this.createImageLayer("学校", false, layerNames[8]);
-
-      const layers = [
-        poiPop,
-        poiCater,
-        poiHousePirce,
-        poiSMarket,
-        poiSchool,
-        housePirce,
-        gridPop,
-        city,
-        country,
-      ];
-
-
-      let img = housePirce.getSource().getLegendUrl();
-      console.log(img);
-      // console.log(getIconStyle(img));
-
-      this.layers = layers;
-
-      const Overlays = new LayerGroup({
-        title: "基础要素",
-        fold: "open",
-        layers: layers,
-      });
-
-      const Overlays2 = new LayerGroup({
-        title: "聚类分析",
-        fold: "open",
-        combine: true,
-        layers: [],
-      });
-
-      const Overlays3 = new LayerGroup({
-        title: "回归分析",
-        fold: "open",
-        combine: true,
-        layers: [],
-      });
+      this.layerList = layerList
 
       const view = new View({
         // projection: projection,
@@ -611,20 +612,36 @@ export default {
         view: view,
       });
 
-      const layerswitcher = new LayerSwitcher({
-        activationMode: "click",
-        tipLabel: "Légende",
-        groupSelectStyle: "none",
-        reverse: true,
+
+      // const layerswitcher = new LayerSwitcher({
+      //   activationMode: "click",
+      //   tipLabel: "Légende",
+      //   groupSelectStyle: "child",
+      //   reverse: true,
+      // });
+
+      let that = this;
+      const olsw = new olLayerSwitcher({
+        // displayInLayerSwitcher: function (l) { return false; },
+        trash: true,
+        oninfo: function (l) {
+          alert(l.get("title"));
+        },
+        onchangeCheck: function (l) {
+          that.addLegend()
+        },
       });
 
-      this.map.addControl(layerswitcher);
+      this.map.addControl(olsw);
 
       //绘制上海行政区域边界
       this.addAreaBoundary();
 
       //添加overlayer弹窗
       this.addOverlay();
+
+      //WFS请求：定义一个选择器，用于查询要素信息
+      // this.addSelect();
 
       //监听地图单击事件
       this.map.on("singleclick", this.mapClick);
@@ -645,13 +662,20 @@ export default {
       // 将地理坐标格式化为半球、度、分和秒的形式
       let hdms = toStringHDMS(toLonLat(coordinate));
 
-      //请求查询要素信息
-      await this.getFeatures(e);
+      //WMS服务请求查询要素信息
+      await this.getWMSFeatures(e);
+      //WFS服务请求查询要素信息
+      // this.getWFSFeatures(e);
 
+      //渲染的html内存
       let html = "";
-      if (this.features.length) {
-        let { properties } = this.features[0];
-        const keys = Object.keys(properties);
+      let features = this.features;
+      console.log(features);
+      //删除某个属性
+      if (features) {
+        if (features.hasOwnProperty("geometry")) {
+          Reflect.deleteProperty(features, "geometry");
+        }
         let template = `
           <p>要素信息：</p>
           <% for(let i=0; i<data.supplies.length; i++) { %>
@@ -659,7 +683,7 @@ export default {
           <% } %>
         `;
         let parse = eval(this.compile(template));
-        html = parse({ supplies: Object.entries(properties) });
+        html = parse({ supplies: Object.entries(features) });
       }
 
       content.innerHTML = `
@@ -702,19 +726,23 @@ export default {
         console.log(e);
       });
     },
-    //请求要素信息
-    getFeatures(e) {
+    //WMS请求要素信息
+    getWMSFeatures(e) {
       const viewResolution = this.map.getView().getResolution();
-      let url = "";
-
+      let urls = [];
+      let propertyNames = []; //需要展示的字段
       //多个图层：遍历每个图层，仅在可见的情况下才查询要素信息
       this.layers.forEach((layer) => {
         if (layer.getVisible()) {
-          url = layer
+          // console.log(layer);
+          propertyNames.push(layer.values_.propertyName);
+          let url = layer
             .getSource()
             .getFeatureInfoUrl(e.coordinate, viewResolution, "EPSG:4326", {
               INFO_FORMAT: "application/json",
             });
+          // console.log(url, ' ',layer.getZIndex())
+          urls.push(url);
         }
       });
 
@@ -726,12 +754,71 @@ export default {
       //   { INFO_FORMAT: "application/json" }
       // );
 
-      //请求url
-      if (url) {
-        //请求数据
-        return this.axios.get(url).then((res) => {
-          this.features = res.data.features;
+      //单个请求url
+      // if (url) {
+      //   //请求数据
+      //   return this.axios.get(url).then((res) => {
+      //     //要素信息存储
+      //     this.features = res.data.features;
+      //     console.log(res.data.features);
+      //   });
+      // }
+
+      //多个请求
+      if (urls.length) {
+        let that = this;
+        let urlsReq = urls.map((url) => that.axios.get(url));
+        let featuresList = {};
+        return that.axios.all(urlsReq).then(
+          that.axios.spread((...arg) => {
+            //所有请求都执行完毕
+            Array.from([...arg]).forEach((res, index) => {
+              //查看每个请求返回的数据,如果有数据就添加
+              let { features } = res.data;
+              if (features.length) {
+                //指定属性（字段）
+                let pn = propertyNames[index];
+                // console.log(features[0].properties['parking']);
+                // console.log(pn, features[0].properties[pn]);
+                let data =
+                  pn == ""
+                    ? features[0].properties
+                    : { [pn]: features[0].properties[pn] };
+                featuresList = Object.assign(featuresList, data);
+              }
+            });
+
+            this.features = featuresList;
+            console.log(this.features);
+          })
+        );
+      }
+    },
+    //WFS请求要素信息方法1
+    addSelect() {
+      const select = new Select({
+        condition: click,
+      });
+      this.map.addInteraction(select);
+      select.on("select", (e) => {
+        let coordinate = e.mapBrowserEvent.coordinate; //获取选择的坐标
+        let properties = e.selected[0].getProperties(); //获取当前要素的所有属性
+        // this.features = properties;    //点击查询要素信息
+        let features = e.target.getFeatures().getArray();
+        // if (features.length > 0) {
+        //   this.features = features
+        // }
+        console.log(features);
+        console.log(properties);
+      });
+    },
+    //WFS请求要素信息方法2
+    getWFSFeatures(e) {
+      if (this.map.hasFeatureAtPixel(e.pixel)) {
+        let features = this.map.getFeaturesAtPixel(e.pixel, {
+          hitTolerance: 1,
         });
+        this.features = features[0].values_;
       }
     },
     //绘制行政区域边界
@@ -767,6 +854,7 @@ export default {
       });
       // 设置图层
       this.routeLayer = new VectorLayer({
+        title: "行政区",
         source: new VectorSource({
           features: features,
         }),
@@ -786,43 +874,64 @@ export default {
       template = "echo(`" + template + "`);";
 
       let script = `(function parse(data){
-        let output = "";
+          let output = "";
 
-        function echo(html){
-          output += html;
-        }
+          function echo(html){
+            output += html;
+          }
 
-        ${template}
+          ${template}
 
-        return output;
-      })`;
+          return output;
+        })`;
 
       return script;
     },
-    //添加图例
-    addLegend() {
-      const updateLegend = (resolution) => {
-        const img = document.getElementById("legend");
-        this.layers.forEach((layer) => {
-          if (layer.getVisible()) {
-            const graphicUrl = layer.getSource().getLegendUrl(resolution);
-            img.src = graphicUrl;
-          }
-        });
-      };
-      const resolution = this.map.getView().getResolution;
-      updateLegend(resolution);
-
-      this.map.getView().on("change:resolution", (e) => {
-        console.log(e);
-        // const resolution = e.getView().getResolution
-        // updateLegend(resolution)
+    //初始化图例
+    initLegend() {
+      let legend = new olExtLegend({
+        title: "图例",
+        margin: 2,
+        maxWidth: 300,
+      });
+      let legendCtrl = new olExtLegendControl({
+        legend: legend,
+        collapsed: false,
       });
 
-      // legend = new OlExtLegend({
-      //   title: "图例",
-      //   margin: 5
-      // })
+      legend.setStyle(this.getFeatureNameColor())
+      this.map.addControl(legendCtrl);
+      this.legend = legend;
+      this.addLegend();
+    },
+    //添加图例
+    addLegend() {
+      //清空图例
+      this.legend.getItems().clear()
+
+      console.log(this.layerList);
+
+      //遍历所有图层
+      this.layers.forEach((layer, index) => {
+
+        //图层可见
+        if (layer.getVisible()) {
+          const graphicUrl = layer.getSource().getLegendUrl();
+          const title = layer.values_.title;
+          //这两个图层不需要图例
+          if (["行政区-市", "行政区-区县", "外环线", "内环线", "中环线"].indexOf(title) !== -1 ) return;
+
+          let layerLegend = new olExtLegend({ layer: layer });
+          layerLegend.addItem(
+            new legendImage({
+              title: title,
+              src: graphicUrl,
+            })
+          );
+          this.legend.addItem(layerLegend);
+          // img.src = graphicUrl;
+        }
+      });
     },
   },
 };
@@ -837,9 +946,20 @@ export default {
     top: 14.5em;
     right: 27%;
   }
+
   .map {
     width: 100%;
-    height: 780px; //100%;  //
+    height: 1200px; //100%;  
+    /deep/.ol-layerswitcher {
+      top: 14.5em;
+      right: 27%;
+    }
+    /deep/.ol-legend {
+      bottom: auto;
+      left: 27%;
+      top: 14.5em;
+      padding: 4px;
+    }
   }
   .ol-popup {
     position: relative;

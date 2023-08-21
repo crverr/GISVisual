@@ -1,384 +1,403 @@
 [
-{
-    "name": "基础要素",
-    "type": "",
-    "childs": [
-        {
-            "name": "行政区划",
-            "childs": [
-                {
-                    "name": "行政区-市",
-                    "file": "region_city_sh"
-                },
-                {
-                    "name": "行政区-区县",
-                    "file": "region_county_sh"
-                }
-            ]
-        },
-        {
-            "name": "空间结构",
-            "childs": [
-                {
-                    "name": "城市中心",
-                    "file": "city_center"
-                },
-                {
-                    "name": "内环线",
-                    "file": "road_inner_ring_sh"
-                },
-                {
-                    "name": "中环线",
-                    "file": "road_middle_ring_sh"
-                },
-                {
-                    "name": "外环线",
-                    "file": "road_outer_ring_sh"
-                }
-            ]
-        },
-        {
-            "name": "房价样本",
-            "file": "houseprice_point_sh_2020"
-        },
-        {
-            "name": "轨道交通",
-            "childs": [
-                {
-                    "name": "轨道站点",
-                    "file": "poi_metro_sh_2020"
-                },
-                {
-                    "name": "轨道线路",
-                    "file": "metro_line_sh_2020"
-                }
-            ]
-        }
-    ]
-},
-{
-    "name": "区域分析",
-    "type": "base",      
-    "childs": [
-        {
-            "name": "网格统计",
-            "file": "grid_sh_2020",
-            "childs": [
-                {
-                    "name": "网格-人口",
-                    "property": "pop20"
-                },
-                {
-                    "name": "网格-政府机构",
-                    "property": "admin"
-                },
-                {
-                    "name": "网格-生活服务",
-                    "property": "living"
-                },
-                {
-                    "name": "网格-医院诊所",
-                    "property": "hospital"
-                },
-                {
-                    "name": "网格-餐厅",
-                    "property": "catering"
-                },
-                {
-                    "name": "网格-超市",
-                    "property": "market"
-                },
-                {
-                    "name": "网格-商场",
-                    "property": "mall"
-                },
-                {
-                    "name": "网格-科教文化场馆",
-                    "property": "cultural"
-                },
-                {
-                    "name": "网格-幼儿园",
-                    "property": "preschool"
-                },
-                {
-                    "name": "网格-中小学",
-                    "property": "school"
-                },
-                {
-                    "name": "网格-大学",
-                    "property": "college"
-                },
-                {
-                    "name": "网格-休闲娱乐设施",
-                    "property": "entertain "
-                },
-                {
-                    "name": "网格-城市广场",
-                    "property": "park"
-                },
-                {
-                    "name": "网格-公园景点",
-                    "property": "scenicspot"
-                },
-                {
-                    "name": "网格-办公场所",
-                    "property": "workplace  "
-                },
-                {
-                    "name": "网格-停车场",
-                    "property": "parking "
-                },
-                {
-                    "name": "网格-地铁站",
-                    "property": "metro "
-                },
-                {
-                    "name": "网格-公交站",
-                    "property": "bus"
-                },
-                {
-                    "name": "网格-火车站&汽车站",
-                    "property": "travelsta"
-                }
-
-            ]
-        },
-        {
-            "name": "领域统计",
-            "file": "grid_neighbor_sh_2020",
-            "childs": [
-                {
-                    "name": "网格-人口",
-                    "property": "pop20_o"
-                },
-                {
-                    "name": "网格-政府机构",
-                    "property": "admin"
-                },
-                {
-                    "name": "网格-生活服务",
-                    "property": "living"
-                },
-                {
-                    "name": "网格-医院诊所",
-                    "property": "hospital"
-                },
-                {
-                    "name": "网格-餐厅",
-                    "property": "catering"
-                },
-                {
-                    "name": "网格-超市",
-                    "property": "market"
-                },
-                {
-                    "name": "网格-商场",
-                    "property": "mall"
-                },
-                {
-                    "name": "网格-科教文化场馆",
-                    "property": "cultural"
-                },
-                {
-                    "name": "网格-幼儿园",
-                    "property": "preschool"
-                },
-                {
-                    "name": "网格-中小学",
-                    "property": "school"
-                },
-                {
-                    "name": "网格-大学",
-                    "property": "college"
-                },
-                {
-                    "name": "网格-休闲娱乐设施",
-                    "property": "entertain "
-                },
-                {
-                    "name": "网格-城市广场",
-                    "property": "park"
-                },
-                {
-                    "name": "网格-公园景点",
-                    "property": "scenicspot"
-                },
-                {
-                    "name": "网格-办公场所",
-                    "property": "workplace  "
-                },
-                {
-                    "name": "网格-停车场",
-                    "property": "parking "
-                },
-                {
-                    "name": "网格-地铁站",
-                    "property": "metro "
-                },
-                {
-                    "name": "网格-公交站",
-                    "property": "bus"
-                },
-                {
-                    "name": "网格-火车站&汽车站",
-                    "property": "travelsta"
-                }
-
-            ]
-        }
-    ]
-},
-{
-    "name": "聚类分析",
-    "type": "base",      
-    "childs": [
-        {
-            "name": "热点分析",
-            "childs": [
-                {
-                    "name": "房价",
-                    "file": "HotSpot_hp"
-                },
-                {
-                    "name": "人口",
-                    "file": "HotSpot_pop"
-                },
-                {
-                    "name": "房价人口比",
-                    "file": "HotSpot_hp_pop_r"
-                }
-            ]
-        },
-        {
-            "name": "空间自相关",
-            "file": "LISA_hp_pop",
-            "childs": [
-                {
-                    "name": "房价",
-                    "property": "R_hp"
-                },
-                {
-                    "name": "人口",
-                    "property": "R_pop"
-                },
-                {
-                    "name": "房价与人口",
-                    "property": "R_hp_pop"
-                }
-            ]
-        }
-    ]
-},
-{
-    "name": "回归分析",
-    "type": "base",
-    "childs": [
-        {
-            "name": "直接结果",
-            "file": "grid_GWRresult_v7",
-            "childs": [
-                {
-                    "name": "Local R2",
-                    "property": "LocalR2"
-                },
-                {
-                    "name": "标准残差",
-                    "property": "StdResid"
-                },
-                {
-                    "name": "人口",
-                    "property": "C1_pop20_o"
-                },
-                {
-                    "name": "幼儿园",
-                    "property": "C2_prescho"
-                },
-                {
-                    "name": "中小学",
-                    "property": "C3_school"
-                },
-                {
-                    "name": "休闲娱乐设施",
-                    "property": "C4_enterta"
-                },
-                {
-                    "name": "公园景点",
-                    "property": "C5_scenics"
-                },
-                {
-                    "name": "办公场所",
-                    "property": "C6_workpla"
-                },
-                {
-                    "name": "地铁站",
-                    "property": "C7_metro"
-                },
-                {
-                    "name": "常数项",
-                    "property": "Intercept"
-                }
-
-
-            ]
-        },
-        {
-            "name": "全域插值",
-            "file": "grid_predict_hp",
-            "childs": [
-                {
-                    "name": "人口",
-                    "property": "gwr_C1"
-                },
-                {
-                    "name": "幼儿园",
-                    "property": "gwr_C2"
-                },
-                {
-                    "name": "中小学",
-                    "property": "gwr_C3"
-                },
-                {
-                    "name": "休闲娱乐设施",
-                    "property": "gwr_C4"
-                },
-                {
-                    "name": "公园景点",
-                    "property": "gwr_C5"
-                },
-                {
-                    "name": "办公场所",
-                    "property": "gwr_C6"
-                },
-                {
-                    "name": "地铁站",
-                    "property": "gwr_C7"
-                },
-                {
-                    "name": "常数项插值",
-                    "property": "gwr_intcp"
-                },
-                {
-                    "name": "残差插值",
-                    "property": "gwr_resid"
-                }
-            ]
-        }
-    ]
-},
-{
-    "name": "地价预估",
-    "type": "base",
-    "childs": [
-        {
-            "name": "基于房价样本的IDW插值预估",
-            "file": "grid_predict_hp",
-            "property": "idw_all_hp"
-        },
-        {
-            "name": "基于GWR结果的IDW插值预估",
-            "file": "grid_predict_hp",
-            "property": "predict_hp"
-        }
-    ]
-}
+    {
+        "name": "基础要素",
+        "type": "",
+        "childs": [
+            {
+                "name": "行政区划",
+                "visible": true,
+                "childs": [
+                    {
+                        "name": "行政区-市",
+                        "file": "region_city_sh"
+                    },
+                    {
+                        "name": "行政区-区县",
+                        "file": "region_county_sh"
+                    }
+                ]
+            },
+            {
+                "name": "空间结构",
+                "visible": true,
+                "childs": [
+                    {
+                        "name": "城市中心",
+                        "file": "city_center"
+                    },
+                    {
+                        "name": "内环线",
+                        "file": "road_inner_ring_sh"
+                    },
+                    {
+                        "name": "中环线",
+                        "file": "road_middle_ring_sh"
+                    },
+                    {
+                        "name": "外环线",
+                        "file": "road_outer_ring_sh"
+                    }
+                ]
+            },
+            {
+                "name": "房价样本",
+                "file": "houseprice_point_sh_2020",
+                "visible": true,
+                "range": [3,38282, 56568, 77404,110702,360577],
+                "property": "unitprice"
+                
+            },
+            {
+                "name": "轨道交通",
+                "visible": false,
+                "childs": [
+                    {
+                        "name": "轨道站点",
+                        "file": "poi_metro_sh_2020"
+                    },
+                    {
+                        "name": "轨道线路",
+                        "file": "metro_line_sh_2020"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "区域分析",
+        "type": "base",
+        "childs": [
+            {
+                "name": "网格统计",
+                "file": "grid_sh_2020",
+                "visible": false,
+                "childs": [
+                    {
+                        "name": "网格-房价",
+                        "property": "hp20_mean",
+                        "range": [0, 25869,36154,46608,59149,74265,93624,126047, 158679]
+                    },
+                    {
+                        "name": "网格-人口",
+                        "property": "pop20",
+                        "range": [0, 579, 1613, 3103, 5295, 7816,11794,18899,27024,49359]
+                    },
+                    {
+                        "name": "网格-政府机构",
+                        "property": "admin"
+                    },
+                    {
+                        "name": "网格-生活服务",
+                        "property": "living"
+                    },
+                    {
+                        "name": "网格-医院诊所",
+                        "property": "hospital"
+                    },
+                    {
+                        "name": "网格-餐厅",
+                        "property": "catering"
+                    },
+                    {
+                        "name": "网格-超市",
+                        "property": "market"
+                    },
+                    {
+                        "name": "网格-商场",
+                        "property": "mall"
+                    },
+                    {
+                        "name": "网格-科教文化场馆",
+                        "property": "cultural"
+                    },
+                    {
+                        "name": "网格-幼儿园",
+                        "property": "preschool"
+                    },
+                    {
+                        "name": "网格-中小学",
+                        "property": "school"
+                    },
+                    {
+                        "name": "网格-大学",
+                        "property": "college"
+                    },
+                    {
+                        "name": "网格-休闲娱乐设施",
+                        "property": "entertain "
+                    },
+                    {
+                        "name": "网格-城市广场",
+                        "property": "park"
+                    },
+                    {
+                        "name": "网格-公园景点",
+                        "property": "scenicspot"
+                    },
+                    {
+                        "name": "网格-办公场所",
+                        "property": "workplace"
+                    },
+                    {
+                        "name": "网格-停车场",
+                        "property": "parking "
+                    },
+                    {
+                        "name": "网格-地铁站",
+                        "property": "metro"
+                    },
+                    {
+                        "name": "网格-公交站",
+                        "property": "bus"
+                    },
+                    {
+                        "name": "网格-火车站&汽车站",
+                        "property": "travelsta"
+                    }
+                ]
+            },
+            {
+                "name": "领域统计",
+                "visible": false,
+                "file": "grid_neighbor_sh_2020",
+                "childs": [
+                    {
+                        "name": "网格-人口",
+                        "property": "pop20_o"
+                    },
+                    {
+                        "name": "网格-政府机构",
+                        "property": "admin"
+                    },
+                    {
+                        "name": "网格-生活服务",
+                        "property": "living"
+                    },
+                    {
+                        "name": "网格-医院诊所",
+                        "property": "hospital"
+                    },
+                    {
+                        "name": "网格-餐厅",
+                        "property": "catering"
+                    },
+                    {
+                        "name": "网格-超市",
+                        "property": "market"
+                    },
+                    {
+                        "name": "网格-商场",
+                        "property": "mall"
+                    },
+                    {
+                        "name": "网格-科教文化场馆",
+                        "property": "cultural"
+                    },
+                    {
+                        "name": "网格-幼儿园",
+                        "property": "preschool"
+                    },
+                    {
+                        "name": "网格-中小学",
+                        "property": "school"
+                    },
+                    {
+                        "name": "网格-大学",
+                        "property": "college"
+                    },
+                    {
+                        "name": "网格-休闲娱乐设施",
+                        "property": "entertain"
+                    },
+                    {
+                        "name": "网格-城市广场",
+                        "property": "park"
+                    },
+                    {
+                        "name": "网格-公园景点",
+                        "property": "scenicspot"
+                    },
+                    {
+                        "name": "网格-办公场所",
+                        "property": "workplace"
+                    },
+                    {
+                        "name": "网格-停车场",
+                        "property": "parking "
+                    },
+                    {
+                        "name": "网格-地铁站",
+                        "property": "metro"
+                    },
+                    {
+                        "name": "网格-公交站",
+                        "property": "bus"
+                    },
+                    {
+                        "name": "网格-火车站&汽车站",
+                        "property": "travelsta"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "聚类分析",
+        "type": "base",
+        "childs": [
+            {
+                "name": "热点分析",
+                "visible": false,
+                "childs": [
+                    {
+                        "name": "房价",
+                        "file": "hotspot_hp",
+                        "property": "gi_bin"
+                    },
+                    {
+                        "name": "人口",
+                        "file": "hotspot_pop",
+                        "property": "gi_bin"
+                    },
+                    {
+                        "name": "房价人口比",
+                        "file": "hotspot_hp_pop_r",
+                        "property": "gi_bin"
+                    }
+                ]
+            },
+            {
+                "name": "空间自相关",
+                "file": "lisa_hp_pop",
+                "visible": false,
+                "childs": [
+                    {
+                        "name": "房价",
+                        "property": "r_hp"
+                    },
+                    {
+                        "name": "人口",
+                        "property": "r_pop"
+                    },
+                    {
+                        "name": "房价与人口",
+                        "property": "r_hp_pop"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "回归分析",
+        "type": "base",
+        "childs": [
+            {
+                "name": "直接结果",
+                "file": "grid_gwrresult_v7",
+                "visible": false,
+                "childs": [
+                    {
+                        "name": "Local R2",
+                        "property": "localr2"
+                    },
+                    {
+                        "name": "标准残差",
+                        "property": "stdresid"
+                    },
+                    {
+                        "name": "人口",
+                        "property": "c1_pop20_o"
+                    },
+                    {
+                        "name": "幼儿园",
+                        "property": "c2_prescho"
+                    },
+                    {
+                        "name": "中小学",
+                        "property": "c3_school"
+                    },
+                    {
+                        "name": "休闲娱乐设施",
+                        "property": "c4_enterta"
+                    },
+                    {
+                        "name": "公园景点",
+                        "property": "c5_scenics"
+                    },
+                    {
+                        "name": "办公场所",
+                        "property": "c6_workpla"
+                    },
+                    {
+                        "name": "地铁站",
+                        "property": "c7_metro"
+                    },
+                    {
+                        "name": "常数项",
+                        "property": "intercept"
+                    }
+                ]
+            },
+            {
+                "name": "全域插值",
+                "file": "grid_predict_hp",
+                "visible": false,
+                "childs": [
+                    {
+                        "name": "人口",
+                        "property": "gwr_c1"
+                    },
+                    {
+                        "name": "幼儿园",
+                        "property": "gwr_c2"
+                    },
+                    {
+                        "name": "中小学",
+                        "property": "gwr_c3"
+                    },
+                    {
+                        "name": "休闲娱乐设施",
+                        "property": "gwr_c4"
+                    },
+                    {
+                        "name": "公园景点",
+                        "property": "gwr_c5"
+                    },
+                    {
+                        "name": "办公场所",
+                        "property": "gwr_c6"
+                    },
+                    {
+                        "name": "地铁站",
+                        "property": "gwr_c7"
+                    },
+                    {
+                        "name": "常数项插值",
+                        "property": "gwr_intcp"
+                    },
+                    {
+                        "name": "残差插值",
+                        "property": "gwr_resid"
+                    }
+                ]
+            },
+            {
+                "name": "地价预估",
+                "file": "grid_predict_hp",
+                "type": "base",
+                "visible": false,
+                "childs": [
+                    {
+                        "name": "基于房价样本的IDW插值预估",
+                        "property": "idw_all_hp"
+                    },
+                    {
+                        "name": "基于GWR结果的IDW插值预估",
+                        "property": "predict_hp"
+                    }
+                ]
+            }
+        ]
+    }
+    
 ]
