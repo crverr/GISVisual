@@ -230,11 +230,11 @@ export default {
       });
       const wmsSource = new ImageWMS({
         ratio: 1,
-        url: "http://localhost:8899/geoserver/crj/wms",
+        url: "/sb/wms",
         params: {
           LAYERS: "crj:houseprice_point_sh_2020_2",
           STYLES: "",
-          VERSION: "1.1.1",
+          VERSION: "1.1.0",
           FORMAT: "image/png",
         },
       });
@@ -313,11 +313,11 @@ export default {
         type: type,
         source: new ImageWMS({
           ratio: 1,
-          url: "http://localhost:8899/geoserver/crj/wms",
+          url: "/sb/wms",
           params: {
             LAYERS: layerName,
             STYLES: "",
-            VERSION: "1.1.1",
+            VERSION: "1.1.0",
             FORMAT: "image/png",
           },
         }),
@@ -369,7 +369,7 @@ export default {
         let sLayers = []
         //遍历二级目录
         fitem.childs.forEach((sitem, sid)=>{
-          
+
           //二级目录是否还有子目录
           if(sitem.hasOwnProperty("childs")) {
             //三级目录——图层
@@ -402,10 +402,10 @@ export default {
               layer = this.getFeaturesByOl(sitem.name, false,'crj:'+sitem.file, sitem.property, fitem.type)
             }
             sLayers.push(layer)
-          }      
+          }
 
         })
-        
+
         const firstGroup = new LayerGroup({
           title: fitem.name,
           fold: "close",
@@ -416,7 +416,7 @@ export default {
 
       })
       return layerList
-      
+
     },
     //方法1：通过内置api使用WFS加载矢量图层
     getFeaturesByOl(title, visible, layerName, propertyName,type) {

@@ -14,47 +14,15 @@
 		</div>
 		<div class="visual_con">
 			<div class="visual_conTop">
-				<div class="visual_conTop_box visual_conTop1">
-					<div>
-						<h3>房产信息总数</h3>
-						<p>2342</p>
-						<!-- <div class="conTop_smil">
-							<a class="sz">日环比:<span>+3%</span><i class="fa fa-long-arrow-up"></i></a>
-							<a class="xd">周环比:<span>-2%</span><i class="fa fa-long-arrow-down"></i></a>
-						</div> -->
-					</div>
-				</div>
-				<div class="visual_conTop_box visual_conTop2">
-					<div>
-						<h3>上海人口总数</h3>
-						<p>124956</p>
-						<!-- <div class="conTop_smil">
-							<a class="">缓行</a>
-							<a class="">平均车速<span>120</span>KM/H</i></a>
-						</div> -->
-					</div>
-				</div>
-				<div class="visual_conTop_box visual_conTop1">
-					<div>
-						<h3>上海平均房价</h3>
-						<p>9129</p>
-						<!-- <div class="conTop_smil">
-							<a class="sz">日环比:<span>+3%</span><i class="fa fa-long-arrow-up"></i></a>
-							<a class="xd">周环比:<span>-2%</span><i class="fa fa-long-arrow-down"></i></a>
-						</div> -->
-					</div>
-				</div>
-				<div class="visual_conTop_box visual_conTop2">
-					<div>
-						<h3>上海XXXXX</h3>
-						<p>74211</p>
-						<!-- <div class="conTop_smil">
-							<a class="null">null</a>
-							<a class="xd">月环比:<span>-2%</span><i class="fa fa-long-arrow-down"></i></a>
-						</div> -->
-					</div>
-				</div>
-				<div class="clear"></div>
+        <div v-for="(value, key, index) in resultMap" :key="key">
+          <div :class="index % 2 === 0 ? 'visual_conTop_box visual_conTop1' : 'visual_conTop_box visual_conTop2'">
+            <div>
+              <h3>{{ key }}</h3>
+              <p>{{ value }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="clear"></div>
 			</div>
 			<div class="visual_conBot">
 				<!-- <img class="visual_conBot_0 visual_conBot_l" src="@/assets/images/ksh42.png">
@@ -66,7 +34,7 @@
 					<h2>交通大数据分析平台</h2>
 				</div> -->
                 <!-- 大地图 -->
-				
+
 				<!-- <div class="visual_chart" id="main8"></div>
 				<div class="visual_conBot_bot">
 					<div class="visualSssf_left">
@@ -105,18 +73,21 @@ import Loading from '@/components/Loading'
 import MapCenter from '@/views/MapCenter'
 import VisualBox from '@/components/VisualBox'
 import { format } from 'echarts';
+import axios from "axios";
 export default {
   name: "index",
   components: {Loading, MapCenter,VisualBox},
   data() {
     return {
         loading: true,
-		titlesL: [["各区每月房价均价", 1], ["各区房价分布",2], ["房价Top",3]],
-		titlesR: [["空间分布模式",4], ["影响房价的TOP因素",5], ["变量统计分析",6]],
+		titlesL: [["每月交易量及交易均价", 1], ["各区房价分布",2], ["房产单价Top10",3]],
+		titlesR: [["全局空间分析",4], ["影响房价的TOP因素",5], ["变量统计分析",6]],
+      resultMap:{}
     }
   },
   mounted() {
     // this.hiddenLoading()
+    this.fetchDataNumber()
   },
   methods: {
     hiddenLoading() {
@@ -125,6 +96,20 @@ export default {
         setTimeout(()=>{
             this.loading = false
         }, 2000)
+    },
+    fetchDataNumber(){
+      axios({
+        url: "/sb/getDataNumber",
+        method: "GET",
+      }).then(res => {
+        if(res.data.code === '200'){
+          this.resultMap = res.data.data;
+        }else {
+          console.error("未能获取数据，系统错误！")
+        }
+      }).catch(error => {
+        console.error("An error occurred:", error);
+      });
     }
   }
 };
