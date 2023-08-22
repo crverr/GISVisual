@@ -949,7 +949,7 @@ export default {
 
   .map {
     width: 100%;
-    height: 1200px; //100%;  
+    height: 100%;  
     /deep/.ol-layerswitcher {
       top: 14.5em;
       right: 27%;

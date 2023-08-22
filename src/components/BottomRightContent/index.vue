@@ -132,7 +132,7 @@ export default {
       width: 100%;
       .line {
         width: 100%;
-        line-height: 1.6;
+        line-height: 1.8;
         color: #61a8ff;
         display: flex;
         justify-content: space-around;

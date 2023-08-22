@@ -2,7 +2,14 @@ a,p,h1,h2,h3,h4,h5,h6,body,span,label,div{padding:0;margin:0;font-family:'瀵邦
 div{font-family:'瀵邦喛钂嬮梿鍛寸拨';}
 ul{padding:0;margin:0;}
 a{text-decoration:none !important;}
-.clear{clear:both;}
+.clear:after {
+	content: "";
+	display: block;
+	height: 0;
+	line-height: 0;
+	visibility: hidden;
+	clear: both;
+  }
 html, body, form{overflow-y:auto;height:100%;}
 /* 滚动条样式 */
 ::-webkit-scrollbar {width:1px;height:4px;}
