@@ -909,7 +909,7 @@ export default {
       //清空图例
       this.legend.getItems().clear()
 
-      console.log(this.layerList);
+      // console.log(this.layerList);
 
       //遍历所有图层
       this.layers.forEach((layer, index) => {
