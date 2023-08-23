@@ -37,3 +37,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 实现点击图层进行要素查询功能，展示数据面板，
 构建可视化大屏模板，利用ECharts绘制图表，将人口分布、房价等数据以多形式图表呈现。
 ```
+
+## 最后系统图
+![输入图片说明](src/assets/images/7b7d3ac1991c3d00dfa66b70bb92ce0.png)
+
