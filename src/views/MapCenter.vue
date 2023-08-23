@@ -77,7 +77,7 @@ export default {
       container: null,
       shJsonData: shJson,
       layerStrData: layerStrJson,
-      wfsUrl: "http://localhost:8899/geoserver/wfs", //wfs服务地址
+      wfsUrl: "/geo/wfs", //wfs服务地址
       color: [
         "#ff14c3",
         "#ff621d",
@@ -129,9 +129,9 @@ export default {
       });
       const wmsSource = new ImageWMS({
         ratio: 1,
-        url: "/sb/wms",
+        url: "/geo/wms",
         params: {
-          LAYERS: "crj:houseprice_point_sh_2020_2",
+          LAYERS: "crj:houseprice_point_sh_2020",
           STYLES: "",
           VERSION: "1.1.0",
           FORMAT: "image/png",
@@ -147,11 +147,11 @@ export default {
       let tiled = new TileLayer({
         visible: true,
         source: new TileWMS({
-          url: "http://localhost:8899/geoserver/crj/wms",
+          url: "/geo/wms",
           params: {
             LAYERS: "crj:grid_pop_hp_sh_2020",
             STYLES: "",
-            VERSION: "1.1.1",
+            VERSION: "1.1.0",
             FORMAT: "image/png",
             tiled: true,
             exceptions: "application/vnd.ogc.se_inimage",
@@ -213,7 +213,7 @@ export default {
         propertyName: propertyName,
         source: new ImageWMS({
           ratio: 1,
-          url: "http://localhost:8899/geoserver/crj/wms",
+          url: "/sb/wms",
           params: {
             LAYERS: layerName,
             STYLES: "",
@@ -398,7 +398,7 @@ export default {
         propertyName: "index,grid_code,pop20,geom",
       };
       this.axios({
-        url: "http://localhost:8899/geoserver/wfs",
+        url: "/geo/wfs",
         methods: "GET",
         params: params,
       })
@@ -949,7 +949,8 @@ export default {
 
   .map {
     width: 100%;
-    height: 100%;  
+    height: 100%;
+
     /deep/.ol-layerswitcher {
       top: 14.5em;
       right: 27%;
