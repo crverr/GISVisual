@@ -31,3 +31,9 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+```
+地理数据由GeoServer提供，包括人口、房价等信息，前端地图展示利用openlayer库WMS/WFS请求图层 
+构建地图框架，封装地图图层控件和图例控件，实现地图图层切换控制及对应图例展示 
+实现点击图层进行要素查询功能，展示数据面板，
+构建可视化大屏模板，利用ECharts绘制图表，将人口分布、房价等数据以多形式图表呈现。
+```
