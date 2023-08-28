@@ -424,7 +424,7 @@ export default {
       };
       return style;
     },
-    //整合图层列表 分别使用WMS和WFS请求
+    //整合图层列表2 分别使用WMS和WFS请求
     getLayerList2() {
       //底图
       const osm = this.createditu("OSM", false);
@@ -453,12 +453,16 @@ export default {
             //遍历三级目录
             sitem.childs.forEach((titem, tid)=>{
               let layer = null
+              //三级目录是否有指定字段
+              let property = titem.hasOwnProperty("property") ? titem.property : "";
               //如果是"基础要素"使用WMS加载
               if(fitem.name === "基础要素") {
-                layer = this.createImageLayer(titem.name, false, 'crj:'+titem.file, fitem.type);
+                //图层名
+                let file =  "crj:" + (titem.hasOwnProperty("file") ? titem.file : sitem.file + "_" + property);   
+                layer = this.createImageLayer(titem.name, sitem.visible, file, property, fitem.type);
               } //否则使用WFS加载
               else {
-                layer = this.getFeaturesByOl(titem.name, false,'crj:'+sitem.file, titem.property, fitem.type)
+                layer = this.getFeaturesByOl(titem.name, sitem.visible,'crj:'+sitem.file, property, fitem.type)
               }
               tLayers.push(layer)
             })
@@ -472,10 +476,12 @@ export default {
 
           } else {
             let layer = null
+            //二级目录是否有指定字段
+            let property = sitem.hasOwnProperty("property") ? sitem.property : "";
             if(fitem.name == "基础要素") {
-              layer = this.createImageLayer(sitem.name, false, 'crj:'+sitem.file, fitem.type);
+              layer = this.createImageLayer(sitem.name, sitem.visible, 'crj:'+sitem.file, property, fitem.type);
             } else {
-              layer = this.getFeaturesByOl(sitem.name, false,'crj:'+sitem.file, sitem.property, fitem.type)
+              layer = this.getFeaturesByOl(sitem.name, sitem.visible,'crj:'+sitem.file, property, fitem.type)
             }
             sLayers.push(layer)
           }
