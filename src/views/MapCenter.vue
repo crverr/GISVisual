@@ -248,76 +248,6 @@ export default {
         source: source,
       });
     },
-    //整合图层列表
-    getLayerList() {
-      //底图
-      const osm = this.createditu("OSM", false);
-      const xyz = this.createditu("XYZ", false);
-      const darkxyz = this.createditu("darkXYZ", true);
-      //底图组
-      const baseMaps = new LayerGroup({
-        title: "Base maps",
-        fold: "open",
-        layers: [osm, xyz, darkxyz],
-      });
-
-      let layerList = [darkxyz]
-
-      //遍历一级目录
-      this.layerStrData.forEach((fitem,fid)=>{
-        //二级目录层
-        let sLayers = []
-        //遍历二级目录
-        fitem.childs.forEach((sitem, sid)=>{
-
-          //二级目录是否还有子目录
-          if(sitem.hasOwnProperty("childs")) {
-            //三级目录——图层
-            let tLayers = []
-            //遍历三级目录
-            sitem.childs.forEach((titem, tid)=>{
-              let layer = null
-              //如果是"基础要素"使用WMS加载
-              if(fitem.name === "基础要素") {
-                layer = this.createImageLayer(titem.name, false, 'crj:'+titem.file, fitem.type);
-              } //否则使用WFS加载
-              else {
-                layer = this.getFeaturesByOl(titem.name, false,'crj:'+sitem.file, titem.property, fitem.type)
-              }
-              tLayers.push(layer)
-            })
-            //二级目录组
-            const sencondGroup = new LayerGroup({
-              title: sitem.name,
-              fold: "close",
-              layers: tLayers
-            })
-            sLayers.push(sencondGroup)
-
-          } else {
-            let layer = null
-            if(fitem.name == "基础要素") {
-              layer = this.createImageLayer(sitem.name, false, 'crj:'+sitem.file, fitem.type);
-            } else {
-              layer = this.getFeaturesByOl(sitem.name, false,'crj:'+sitem.file, sitem.property, fitem.type)
-            }
-            sLayers.push(layer)
-          }
-
-        })
-
-        const firstGroup = new LayerGroup({
-          title: fitem.name,
-          fold: "close",
-          layers: sLayers,
-        });
-
-        layerList.push(firstGroup)
-
-      })
-      return layerList
-
-    },
     //方法1：通过内置api使用WFS加载矢量图层
     getFeaturesByOl(title, visible, layerName, propertyName,type) {
       /*
@@ -494,7 +424,77 @@ export default {
       };
       return style;
     },
-    //整合图层列表
+    //整合图层列表 分别使用WMS和WFS请求
+    getLayerList2() {
+      //底图
+      const osm = this.createditu("OSM", false);
+      const xyz = this.createditu("XYZ", false);
+      const darkxyz = this.createditu("darkXYZ", true);
+      //底图组
+      const baseMaps = new LayerGroup({
+        title: "Base maps",
+        fold: "open",
+        layers: [osm, xyz, darkxyz],
+      });
+
+      let layerList = [darkxyz]
+
+      //遍历一级目录
+      this.layerStrData.forEach((fitem,fid)=>{
+        //二级目录层
+        let sLayers = []
+        //遍历二级目录
+        fitem.childs.forEach((sitem, sid)=>{
+
+          //二级目录是否还有子目录
+          if(sitem.hasOwnProperty("childs")) {
+            //三级目录——图层
+            let tLayers = []
+            //遍历三级目录
+            sitem.childs.forEach((titem, tid)=>{
+              let layer = null
+              //如果是"基础要素"使用WMS加载
+              if(fitem.name === "基础要素") {
+                layer = this.createImageLayer(titem.name, false, 'crj:'+titem.file, fitem.type);
+              } //否则使用WFS加载
+              else {
+                layer = this.getFeaturesByOl(titem.name, false,'crj:'+sitem.file, titem.property, fitem.type)
+              }
+              tLayers.push(layer)
+            })
+            //二级目录组
+            const sencondGroup = new LayerGroup({
+              title: sitem.name,
+              fold: "close",
+              layers: tLayers
+            })
+            sLayers.push(sencondGroup)
+
+          } else {
+            let layer = null
+            if(fitem.name == "基础要素") {
+              layer = this.createImageLayer(sitem.name, false, 'crj:'+sitem.file, fitem.type);
+            } else {
+              layer = this.getFeaturesByOl(sitem.name, false,'crj:'+sitem.file, sitem.property, fitem.type)
+            }
+            sLayers.push(layer)
+          }
+
+        })
+
+        const firstGroup = new LayerGroup({
+          title: fitem.name,
+          fold: "close",
+          layers: sLayers,
+        });
+
+        layerList.push(firstGroup)
+
+      })
+      return layerList
+
+    },
+    //整合图层列表 直接使用WMS请求图层
     getLayerList() {
       //底图
       const osm = this.createditu("OSM", false);
